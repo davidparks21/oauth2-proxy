@@ -46,6 +46,8 @@ func (j *jwtSessionLoader) loadSession(next http.Handler) http.Handler {
 			return
 		}
 
+		fmt.Printf("Attempting to load JWT session from Authorization header")
+
 		session, err := j.getJwtSession(req)
 		if err != nil {
 			logger.Errorf("Error retrieving session from token in Authorization header: %v", err)

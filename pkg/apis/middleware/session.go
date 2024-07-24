@@ -19,6 +19,8 @@ type VerifyFunc func(ctx context.Context, token string) (*oidc.IDToken, error)
 // for converting a JWT into a session.
 func CreateTokenToSessionFunc(verify VerifyFunc) TokenToSessionFunc {
 	return func(ctx context.Context, token string) (*sessionsapi.SessionState, error) {
+        fmt.Printf("Starting JWT verification for token: %s\n", token)
+
 		var claims struct {
 			Subject           string   `json:"sub"`
 			Email             string   `json:"email"`
@@ -29,10 +31,12 @@ func CreateTokenToSessionFunc(verify VerifyFunc) TokenToSessionFunc {
 
 		idToken, err := verify(ctx, token)
 		if err != nil {
+            fmt.Printf("JWT verification failed: %v\n", err)
 			return nil, err
 		}
 
 		if err := idToken.Claims(&claims); err != nil {
+            fmt.Printf("Failed to parse bearer token claims: %v", err)
 			return nil, fmt.Errorf("failed to parse bearer token claims: %v", err)
 		}
 
@@ -41,6 +45,7 @@ func CreateTokenToSessionFunc(verify VerifyFunc) TokenToSessionFunc {
 		}
 
 		if claims.Verified != nil && !*claims.Verified {
+            fmt.Printf("Email in id_token (%s) isn't verified", claims.Email)
 			return nil, fmt.Errorf("email in id_token (%s) isn't verified", claims.Email)
 		}
 
@@ -54,6 +59,8 @@ func CreateTokenToSessionFunc(verify VerifyFunc) TokenToSessionFunc {
 			RefreshToken:      "",
 			ExpiresOn:         &idToken.Expiry,
 		}
+
+        fmt.Printf("JWT verification succeeded for token: %s", token)
 
 		return newSession, nil
 	}

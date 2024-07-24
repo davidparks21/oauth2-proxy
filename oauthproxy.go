@@ -118,6 +118,7 @@ type OAuthProxy struct {
 
 // NewOAuthProxy creates a new instance of OAuthProxy from the options provided
 func NewOAuthProxy(opts *options.Options, validator func(string) bool) (*OAuthProxy, error) {
+    fmt.Printf("DEBUG> NewOAuthProxy")
 	sessionStore, err := sessions.NewSessionStore(&opts.Session, &opts.Cookie)
 	if err != nil {
 		return nil, fmt.Errorf("error initialising session store: %v", err)
@@ -158,7 +159,9 @@ func NewOAuthProxy(opts *options.Options, validator func(string) bool) (*OAuthPr
 		return nil, fmt.Errorf("error initialising upstream proxy: %v", err)
 	}
 
+    fmt.Printf("DEBUG> Pre SkipJwtBearerTokens")
 	if opts.SkipJwtBearerTokens {
+        fmt.Printf("DEBUG> Post SkipJwtBearerTokens")
 		logger.Printf("Skipping JWT tokens from configured OIDC issuer: %q", opts.Providers[0].OIDCConfig.IssuerURL)
 		for _, issuer := range opts.ExtraJwtIssuers {
 			logger.Printf("Skipping JWT tokens from extra JWT issuer: %q", issuer)
@@ -393,6 +396,8 @@ func buildSessionChain(opts *options.Options, provider providers.Provider, sessi
 	chain := alice.New()
 
 	if opts.SkipJwtBearerTokens {
+		logger.Printf("Skipping JWT tokens from configured OIDC issuer: %q", opts.Providers[0].OIDCConfig.IssuerURL)
+
 		sessionLoaders := []middlewareapi.TokenToSessionFunc{
 			provider.CreateSessionFromToken,
 		}
